@@ -26,7 +26,7 @@ query = 'Tacla Duran'
 max_tweets = 100
 since_id = None
 until_id = None
-lang = 'en'
+lang = 'pt'
 
 # Search for tweets containing the query
 public_tweets = tweepy.Cursor(api.search_tweets, q=query, since_id=since_id, until_id=until_id, lang=lang).items(max_tweets)
@@ -40,9 +40,11 @@ for tweet in public_tweets:
     sentiment = analysis.sentiment.polarity
     sentiments.append(sentiment)
     tweets.append(text)
+    print(text)
 
-# Create a DataFrame from the list of sentiments
-sentiments_data = pd.DataFrame({'Sentiment': sentiments})
+# Create a DataFrame from the list of sentiments and tweets
+data = {'Sentiment': sentiments, 'Tweet': tweets}
+sentiments_data = pd.DataFrame(data)
 
 # Authenticate with Google Cloud and create a BigQuery client
 credentials = Credentials.from_service_account_file('config/gcp_credentials.json')
@@ -65,4 +67,4 @@ except Exception as e:
 table_id = '{}.{}'.format(dataset_id, 'sentiments')
 
 # Write the DataFrame to a BigQuery table
-pandas_gbq.to_gbq(sentiments_data, table_id, project_id=project_id, if_exists='replace', credentials=credentials, table_schema=[{'name': 'Sentiment', 'type': 'FLOAT'}])
+pandas_gbq.to_gbq(sentiments_data, table_id, project_id=project_id, if_exists='replace', credentials=credentials, table_schema=[{'name': 'Sentiment', 'type': 'FLOAT'}, {'name': 'Tweet', 'type': 'STRING'}])
